@@ -30,6 +30,8 @@ export 'src/platform_switch.dart';
 export 'src/platform_tab_scaffold.dart';
 export 'src/platform_text.dart';
 export 'src/platform_text_field.dart';
+export 'src/platform_form.dart';
+export 'src/platform_form_field.dart';
 export 'src/platform_widget.dart';
 export 'src/platform_widget_builder.dart';
 export 'src/widget_base.dart';

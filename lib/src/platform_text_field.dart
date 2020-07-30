@@ -8,25 +8,27 @@ import 'dart:ui' as ui show BoxHeightStyle, BoxWidthStyle;
 
 import 'package:flutter/cupertino.dart'
     show
-        CupertinoColors,
-        CupertinoDynamicColor,
-        CupertinoTextField,
-        OverlayVisibilityMode;
+    CupertinoColors,
+    CupertinoDynamicColor,
+    CupertinoTextField,
+    OverlayVisibilityMode;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart'
-    show InputDecoration, TextField, InputCounterWidgetBuilder;
+    show Colors, InputCounterWidgetBuilder, InputDecoration, InputDecorationTheme, TextField, TextTheme, Theme, ThemeData, UnderlineInputBorder;
 import 'package:flutter/services.dart'
     show
-        Brightness,
-        TextInputFormatter,
-        TextInputType,
-        TextInputAction,
-        TextCapitalization;
+    Brightness,
+    TextInputFormatter,
+    TextInputType,
+    TextInputAction,
+    TextCapitalization;
 import 'package:flutter/widgets.dart';
 
 import 'platform.dart';
 import 'widget_base.dart';
-
+/*
+typedef PlatformValidator = String Function(String value);
+*/
 const BorderSide _kDefaultRoundedBorderSide = BorderSide(
   color: CupertinoDynamicColor.withBrightness(
     color: Color(0x33000000),
@@ -97,7 +99,7 @@ class MaterialTextFieldData {
     this.smartDashesType,
     this.smartQuotesType,
     this.selectionHeightStyle,
-    this.selectionWidthStyle,
+    this.selectionWidthStyle
   });
 
   final Key widgetKey;
@@ -256,6 +258,8 @@ class PlatformTextField
     extends PlatformWidgetBase<CupertinoTextField, TextField> {
   final Key widgetKey;
 
+  final String errorText;
+
   final PlatformBuilder<MaterialTextFieldData> android;
   final PlatformBuilder<CupertinoTextFieldData> ios;
 
@@ -312,6 +316,7 @@ class PlatformTextField
     this.widgetKey,
     this.controller,
     this.focusNode,
+    this.errorText,
     TextInputType keyboardType,
     this.textInputAction,
     this.textCapitalization = TextCapitalization.none,
@@ -350,19 +355,101 @@ class PlatformTextField
     this.selectionHeightStyle,
     this.selectionWidthStyle,
     @Deprecated('Use material argument. material: (context, platform) {}')
-        this.android,
+    this.android,
     @Deprecated('Use cupertino argument. cupertino: (context, platform) {}')
-        this.ios,
+    this.ios,
     this.material,
     this.cupertino,
   })  : keyboardType = keyboardType ??
-            (maxLines == 1 ? TextInputType.text : TextInputType.multiline),
+      (maxLines == 1 ? TextInputType.text : TextInputType.multiline),
         super(key: key);
+
+  bool _hasError(){
+    return errorText?.isNotEmpty ?? false;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+
+    ThemeData themeData = Theme.of(context);
+
+    if(isCupertino(context)){
+
+      final data =
+          ios?.call(context) ?? cupertino?.call(context, platform(context));
+
+      BoxDecoration effectiveDecoration = data?.decoration ?? BoxDecoration();
+
+      List<Widget> inputField = [];
+      inputField.add(super.build(context));
+
+      if(_hasError()){
+        inputField.add(
+            Padding(
+                padding: EdgeInsets.only(top: 5.0),
+                child: Text(errorText, style: TextStyle(color: CupertinoColors.destructiveRed, fontSize: 12))
+            )
+        );
+      }
+
+      return Theme(
+        data: ThemeData(
+          iconTheme: IconThemeData(
+            color: _hasError() ?
+              (CupertinoColors.destructiveRed) :
+              (CupertinoColors.inactiveGray)
+          ),
+          accentColor: _hasError() ?
+            (CupertinoColors.destructiveRed) :
+            (CupertinoColors.inactiveGray)
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: inputField,
+        )
+      );
+    }
+    else {
+
+      final data =
+          android?.call(context) ?? material?.call(context, platform(context));
+
+      InputDecoration effectiveDecoration = data?.decoration ?? InputDecoration();
+      effectiveDecoration = effectiveDecoration
+          .applyDefaults(themeData.inputDecorationTheme);
+
+      return Theme(
+          data: ThemeData(
+            accentColor: _hasError() ?
+              (effectiveDecoration?.errorStyle?.color ?? themeData.errorColor) :
+              (effectiveDecoration?.focusColor ?? themeData.focusColor)
+          ),
+        child: super.build(context)
+      );
+    }
+
+  }
 
   @override
   TextField createMaterialWidget(BuildContext context) {
     final data =
         android?.call(context) ?? material?.call(context, platform(context));
+
+    InputDecoration effectiveDecoration = data?.decoration ?? InputDecoration();
+
+    ThemeData themeData = Theme.of(context);
+    effectiveDecoration = effectiveDecoration
+        .applyDefaults(themeData.inputDecorationTheme);
+
+    if(_hasError()){
+      TextStyle errorStyle = effectiveDecoration?.errorStyle ?? TextStyle( color: themeData.errorColor );
+      effectiveDecoration = effectiveDecoration.copyWith(
+        errorText: errorText ?? '',
+        labelStyle: errorStyle,
+        suffixStyle: errorStyle,
+        prefixStyle: errorStyle
+      );
+    }
 
     return TextField(
       key: data?.widgetKey ?? widgetKey,
@@ -385,14 +472,14 @@ class PlatformTextField
       onEditingComplete: data?.onEditingComplete ?? onEditingComplete,
       onSubmitted: data?.onSubmitted ?? onSubmitted,
       scrollPadding:
-          data?.scrollPadding ?? scrollPadding ?? const EdgeInsets.all(20),
+      data?.scrollPadding ?? scrollPadding ?? const EdgeInsets.all(20),
       style: data?.style ?? style,
       textAlign: data?.textAlign ?? textAlign ?? TextAlign.start,
       textCapitalization: data?.textCapitalization ??
           textCapitalization ??
           TextCapitalization.none,
       textInputAction: data?.textInputAction ?? textInputAction,
-      decoration: data?.decoration ?? const InputDecoration(),
+      decoration: effectiveDecoration,
       textDirection: data?.textDirection,
       buildCounter: data?.buildCounter,
       dragStartBehavior: data?.dragStartBehavior ??
@@ -434,9 +521,9 @@ class PlatformTextField
       autofocus: data?.autofocus ?? autofocus ?? false,
       controller: data?.controller ?? controller,
       cursorColor:
-          data?.cursorColor ?? cursorColor ?? CupertinoColors.activeBlue,
+      data?.cursorColor ?? cursorColor ?? CupertinoColors.activeBlue,
       cursorRadius:
-          data?.cursorRadius ?? cursorRadius ?? const Radius.circular(2.0),
+      data?.cursorRadius ?? cursorRadius ?? const Radius.circular(2.0),
       cursorWidth: data?.cursorWidth ?? cursorWidth ?? 2.0,
       enabled: data?.enabled ?? enabled,
       focusNode: data?.focusNode ?? focusNode,
@@ -451,7 +538,7 @@ class PlatformTextField
       onEditingComplete: data?.onEditingComplete ?? onEditingComplete,
       onSubmitted: data?.onSubmitted ?? onSubmitted,
       scrollPadding:
-          data?.scrollPadding ?? scrollPadding ?? const EdgeInsets.all(20.0),
+      data?.scrollPadding ?? scrollPadding ?? const EdgeInsets.all(20.0),
       style: data?.style ?? style,
       textAlign: data?.textAlign ?? textAlign ?? TextAlign.start,
       textCapitalization: data?.textCapitalization ??
