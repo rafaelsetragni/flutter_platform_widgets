@@ -176,6 +176,7 @@ class CupertinoButtonData extends _BaseData {
     Color disabledColor,
     this.borderRadius,
     this.minSize,
+    this.margin,
     this.pressedOpacity,
   }) : super(
             widgetKey: widgetKey,
@@ -185,6 +186,7 @@ class CupertinoButtonData extends _BaseData {
             padding: padding,
             disabledColor: disabledColor);
 
+  final EdgeInsetsGeometry margin;
   final BorderRadius borderRadius;
   final double minSize;
   final double pressedOpacity;
@@ -220,6 +222,7 @@ class PlatformButton
   final Widget child;
   final Color color;
   final EdgeInsetsGeometry padding;
+  final EdgeInsetsGeometry margin;
   final Color disabledColor;
 
   final PlatformBuilder<MaterialRaisedButtonData> android;
@@ -240,6 +243,7 @@ class PlatformButton
     this.color,
     this.disabledColor,
     this.padding,
+    this.margin,
     @Deprecated('Use material argument. material: (context, platform) {}')
         this.android,
     @Deprecated('Use materialFlat argument. materialFlat: (context, platform) {}')
@@ -254,6 +258,32 @@ class PlatformButton
     this.cupertinoFilled,
   })  : assert(androidFlat == null || android == null),
         super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    Widget button = super.build(context);
+
+    EdgeInsetsGeometry finalMargin;
+
+    if(isCupertino(context)){
+
+      if (iosFilled != null || cupertinoFilled != null) {
+        final filledData = iosFilled?.call(context) ??
+            cupertinoFilled(context, platform(context));
+      }
+      else{
+        final data =
+            ios?.call(context) ?? cupertino?.call(context, platform(context));
+
+        finalMargin = data?.margin;
+      }
+    }
+
+    return Padding(
+      padding: finalMargin ?? EdgeInsets.zero,
+      child: button,
+    );
+  }
 
   @override
   MaterialButton createMaterialWidget(BuildContext context) {
