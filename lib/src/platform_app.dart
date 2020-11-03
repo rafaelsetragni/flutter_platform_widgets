@@ -39,6 +39,8 @@ abstract class _BaseData {
     this.shortcuts,
     this.actions,
     this.onGenerateInitialRoutes,
+    this.highContrastDarkTheme,
+    this.highContrastTheme,
   });
 
   final Key widgetKey;
@@ -64,8 +66,10 @@ abstract class _BaseData {
   final bool showSemanticsDebugger;
   final bool debugShowCheckedModeBanner;
   final Map<LogicalKeySet, Intent> shortcuts;
-  final Map<LocalKey, ActionFactory> actions;
+  final Map<Type, Action<Intent>> actions;
   final InitialRouteListFactory onGenerateInitialRoutes;
+  final ThemeData highContrastDarkTheme;
+  final ThemeData highContrastTheme;
 }
 
 class MaterialAppData extends _BaseData {
@@ -93,7 +97,7 @@ class MaterialAppData extends _BaseData {
       bool showSemanticsDebugger,
       bool debugShowCheckedModeBanner,
       Map<LogicalKeySet, Intent> shortcuts,
-      Map<LocalKey, ActionFactory> actions,
+      Map<Type, Action<Intent>> actions,
       InitialRouteListFactory onGenerateInitialRoutes,
       this.theme,
       this.debugShowMaterialGrid,
@@ -149,7 +153,7 @@ class CupertinoAppData extends _BaseData {
       Color color,
       Locale locale,
       Map<LogicalKeySet, Intent> shortcuts,
-      Map<LocalKey, ActionFactory> actions,
+      Map<Type, Action<Intent>> actions,
       InitialRouteListFactory onGenerateInitialRoutes,
       Iterable<LocalizationsDelegate<dynamic>> localizationsDelegates,
       LocaleListResolutionCallback localeListResolutionCallback,
@@ -216,11 +220,8 @@ class PlatformApp extends PlatformWidgetBase<CupertinoApp, MaterialApp> {
   final bool showSemanticsDebugger;
   final bool debugShowCheckedModeBanner;
   final Map<LogicalKeySet, Intent> shortcuts;
-  final Map<LocalKey, ActionFactory> actions;
+  final Map<Type, Action<Intent>> actions;
   final InitialRouteListFactory onGenerateInitialRoutes;
-
-  final PlatformBuilder<MaterialAppData> android;
-  final PlatformBuilder<CupertinoAppData> ios;
 
   final PlatformBuilder2<MaterialAppData> material;
   final PlatformBuilder2<CupertinoAppData> cupertino;
@@ -252,18 +253,13 @@ class PlatformApp extends PlatformWidgetBase<CupertinoApp, MaterialApp> {
     this.shortcuts,
     this.actions,
     this.onGenerateInitialRoutes,
-    @Deprecated('Use material argument. material: (context, platform) {}')
-        this.android,
-    @Deprecated('Use cupertino argument. cupertino: (context, platform) {}')
-        this.ios,
     this.material,
     this.cupertino,
   }) : super(key: key);
 
   @override
   createMaterialWidget(BuildContext context) {
-    final data =
-        android?.call(context) ?? material?.call(context, platform(context));
+    final data = material?.call(context, platform(context));
 
     return MaterialApp(
       key: data?.widgetKey ?? widgetKey,
@@ -312,13 +308,14 @@ class PlatformApp extends PlatformWidgetBase<CupertinoApp, MaterialApp> {
       actions: data?.actions ?? actions,
       onGenerateInitialRoutes:
           data?.onGenerateInitialRoutes ?? onGenerateInitialRoutes,
+      highContrastDarkTheme: data?.highContrastDarkTheme,
+      highContrastTheme: data?.highContrastTheme,
     );
   }
 
   @override
   createCupertinoWidget(BuildContext context) {
-    final data =
-        ios?.call(context) ?? cupertino?.call(context, platform(context));
+    final data = cupertino?.call(context, platform(context));
 
     return CupertinoApp(
       key: data?.widgetKey ?? widgetKey,

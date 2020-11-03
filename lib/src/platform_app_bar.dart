@@ -59,6 +59,9 @@ class MaterialAppBarData extends _BaseData {
     this.actionsIconTheme,
     this.shape,
     this.excludeHeaderSemantics,
+    this.shadowColor,
+    this.toolbarHeight,
+    this.leadingWidth,
   }) : super(
           widgetKey: widgetKey,
           title: title,
@@ -83,6 +86,9 @@ class MaterialAppBarData extends _BaseData {
   final IconThemeData actionsIconTheme;
   final ShapeBorder shape;
   final bool excludeHeaderSemantics;
+  final Color shadowColor;
+  final double toolbarHeight;
+  final double leadingWidth;
 }
 
 class CupertinoNavigationBarData extends _BaseData {
@@ -129,10 +135,6 @@ class PlatformAppBar
   final List<Widget> trailingActions;
   final bool automaticallyImplyLeading;
 
-  final PlatformBuilder<MaterialAppBarData> android;
-
-  final PlatformBuilder<CupertinoNavigationBarData> ios;
-
   final PlatformBuilder2<MaterialAppBarData> material;
   final PlatformBuilder2<CupertinoNavigationBarData> cupertino;
 
@@ -144,18 +146,13 @@ class PlatformAppBar
     this.leading,
     this.trailingActions,
     this.automaticallyImplyLeading,
-    @Deprecated('Use material argument. material: (context, platform) {}')
-        this.android,
-    @Deprecated('Use cupertino argument. cupertino: (context, platform) {}')
-        this.ios,
     this.material,
     this.cupertino,
   }) : super(key: key);
 
   @override
   PreferredSizeWidget createMaterialWidget(BuildContext context) {
-    final data =
-        android?.call(context) ?? material?.call(context, platform(context));
+    final data = material?.call(context, platform(context));
 
     return AppBar(
       key: data?.widgetKey ?? widgetKey,
@@ -179,17 +176,19 @@ class PlatformAppBar
       actionsIconTheme: data?.actionsIconTheme,
       shape: data?.shape,
       excludeHeaderSemantics: data?.excludeHeaderSemantics ?? false,
+      shadowColor: data?.shadowColor,
+      toolbarHeight: data?.toolbarHeight,
+      leadingWidth: data?.leadingWidth,
     );
   }
 
   @override
   CupertinoNavigationBar createCupertinoWidget(BuildContext context) {
-    final data =
-        ios?.call(context) ?? cupertino?.call(context, platform(context));
+    final data = cupertino?.call(context, platform(context));
 
     var trailing = trailingActions == null || trailingActions.isEmpty
         ? null
-        : new Row(
+        : Row(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: trailingActions,
@@ -231,6 +230,7 @@ class PlatformAppBar
       trailing: data?.trailing ?? trailing,
       transitionBetweenRoutes: data?.transitionBetweenRoutes ?? true,
       brightness: data?.brightness,
+      //heroTag: , used above
     );
   }
 }

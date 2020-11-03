@@ -7,6 +7,7 @@
 import 'package:flutter/cupertino.dart' show CupertinoTabBar, CupertinoColors;
 import 'package:flutter/material.dart'
     show BottomAppBar, BottomNavigationBar, BottomNavigationBarType;
+import 'package:flutter/rendering.dart' show MouseCursor;
 import 'package:flutter/widgets.dart';
 
 import 'platform.dart';
@@ -59,31 +60,32 @@ class CupertinoTabBarData extends _BaseData {
 }
 
 class MaterialNavBarData extends _BaseData {
-  MaterialNavBarData(
-      {List<BottomNavigationBarItem> items,
-      Color backgroundColor,
-      double iconSize,
-      this.elevation,
-      Color fixedColor,
-      Key widgetKey,
-      ValueChanged<int> itemChanged,
-      int currentIndex,
-      this.type,
-      this.bottomNavigationBarKey,
-      this.shape,
-      this.clipBehavior,
-      this.notchMargin,
-      this.selectedFontSize,
-      this.selectedItemColor,
-      this.showSelectedLabels,
-      this.showUnselectedLabels,
-      this.unselectedFontSize,
-      this.unselectedItemColor,
-      this.selectedIconTheme,
-      this.selectedLabelStyle,
-      this.unselectedIconTheme,
-      this.unselectedLabelStyle})
-      : super(
+  MaterialNavBarData({
+    List<BottomNavigationBarItem> items,
+    Color backgroundColor,
+    double iconSize,
+    this.elevation,
+    Color fixedColor,
+    Key widgetKey,
+    ValueChanged<int> itemChanged,
+    int currentIndex,
+    this.type,
+    this.bottomNavigationBarKey,
+    this.shape,
+    this.clipBehavior,
+    this.notchMargin,
+    this.selectedFontSize,
+    this.selectedItemColor,
+    this.showSelectedLabels,
+    this.showUnselectedLabels,
+    this.unselectedFontSize,
+    this.unselectedItemColor,
+    this.selectedIconTheme,
+    this.selectedLabelStyle,
+    this.unselectedIconTheme,
+    this.unselectedLabelStyle,
+    this.mouseCursor,
+  }) : super(
             widgetKey: widgetKey,
             items: items,
             backgroundColor: backgroundColor,
@@ -108,6 +110,7 @@ class MaterialNavBarData extends _BaseData {
   final TextStyle selectedLabelStyle;
   final IconThemeData unselectedIconTheme;
   final TextStyle unselectedLabelStyle;
+  final MouseCursor mouseCursor;
 }
 
 class PlatformNavBar extends PlatformWidgetBase<CupertinoTabBar, BottomAppBar> {
@@ -117,11 +120,6 @@ class PlatformNavBar extends PlatformWidgetBase<CupertinoTabBar, BottomAppBar> {
   final List<BottomNavigationBarItem> items;
   final ValueChanged<int> itemChanged;
   final int currentIndex;
-
-  @Deprecated('Use material argument. material: (context, platform) {}')
-  final PlatformBuilder<MaterialNavBarData> android;
-  @Deprecated('Use cupertino argument. cupertino: (context, platform) {}')
-  final PlatformBuilder<CupertinoTabBarData> ios;
 
   final PlatformBuilder2<MaterialNavBarData> material;
   final PlatformBuilder2<CupertinoTabBarData> cupertino;
@@ -133,16 +131,13 @@ class PlatformNavBar extends PlatformWidgetBase<CupertinoTabBar, BottomAppBar> {
     this.items,
     this.itemChanged,
     this.currentIndex,
-    this.android,
-    this.ios,
     this.material,
     this.cupertino,
   }) : super(key: key);
 
   @override
   BottomAppBar createMaterialWidget(BuildContext context) {
-    final data =
-        android?.call(context) ?? material?.call(context, platform(context));
+    final data = material?.call(context, platform(context));
 
     var bar = BottomNavigationBar(
       items: data?.items ?? items,
@@ -164,6 +159,7 @@ class PlatformNavBar extends PlatformWidgetBase<CupertinoTabBar, BottomAppBar> {
       selectedLabelStyle: data?.selectedLabelStyle,
       unselectedIconTheme: data?.unselectedIconTheme ?? const IconThemeData(),
       unselectedLabelStyle: data?.unselectedLabelStyle,
+      mouseCursor: data?.mouseCursor,
     );
 
     return BottomAppBar(
@@ -179,8 +175,7 @@ class PlatformNavBar extends PlatformWidgetBase<CupertinoTabBar, BottomAppBar> {
 
   @override
   CupertinoTabBar createCupertinoWidget(BuildContext context) {
-    final data =
-        ios?.call(context) ?? cupertino?.call(context, platform(context));
+    final data = cupertino?.call(context, platform(context));
 
     return CupertinoTabBar(
       items: data?.items ?? items,

@@ -6,6 +6,7 @@
 
 import 'package:flutter/cupertino.dart' show CupertinoColors, CupertinoSlider;
 import 'package:flutter/material.dart' show SemanticFormatterCallback, Slider;
+import 'package:flutter/rendering.dart' show MouseCursor;
 import 'package:flutter/widgets.dart';
 
 import 'platform.dart';
@@ -37,20 +38,23 @@ abstract class _BaseData {
 }
 
 class MaterialSliderData extends _BaseData {
-  MaterialSliderData(
-      {Key widgetKey,
-      double value,
-      ValueChanged<double> onChanged,
-      ValueChanged<double> onChangeStart,
-      ValueChanged<double> onChangeEnd,
-      int divisions,
-      double min,
-      double max,
-      Color activeColor,
-      this.inactiveColor,
-      this.label,
-      this.semanticFormatterCallback})
-      : super(
+  MaterialSliderData({
+    Key widgetKey,
+    double value,
+    ValueChanged<double> onChanged,
+    ValueChanged<double> onChangeStart,
+    ValueChanged<double> onChangeEnd,
+    int divisions,
+    double min,
+    double max,
+    Color activeColor,
+    this.inactiveColor,
+    this.label,
+    this.semanticFormatterCallback,
+    this.focusNode,
+    this.mouseCursor,
+    this.autofocus,
+  }) : super(
             widgetKey: widgetKey,
             value: value,
             onChanged: onChanged,
@@ -64,6 +68,9 @@ class MaterialSliderData extends _BaseData {
   final Color inactiveColor;
   final String label;
   final SemanticFormatterCallback semanticFormatterCallback;
+  final FocusNode focusNode;
+  final MouseCursor mouseCursor;
+  final bool autofocus;
 }
 
 class CupertinoSliderData extends _BaseData {
@@ -104,9 +111,6 @@ class PlatformSlider extends PlatformWidgetBase<CupertinoSlider, Slider> {
   final double min;
   final double max;
 
-  final PlatformBuilder<MaterialSliderData> android;
-  final PlatformBuilder<CupertinoSliderData> ios;
-
   final PlatformBuilder2<MaterialSliderData> material;
   final PlatformBuilder2<CupertinoSliderData> cupertino;
 
@@ -121,10 +125,6 @@ class PlatformSlider extends PlatformWidgetBase<CupertinoSlider, Slider> {
     this.divisions,
     this.min = 0.0,
     this.max = 1.0,
-    @Deprecated('Use material argument. material: (context, platform) {}')
-        this.android,
-    @Deprecated('Use cupertino argument. cupertino: (context, platform) {}')
-        this.ios,
     this.material,
     this.cupertino,
   })  : assert(value != null),
@@ -136,8 +136,7 @@ class PlatformSlider extends PlatformWidgetBase<CupertinoSlider, Slider> {
 
   @override
   Slider createMaterialWidget(BuildContext context) {
-    final data =
-        android?.call(context) ?? material?.call(context, platform(context));
+    final data = material?.call(context, platform(context));
 
     return Slider(
       key: data?.widgetKey ?? widgetKey,
@@ -152,13 +151,15 @@ class PlatformSlider extends PlatformWidgetBase<CupertinoSlider, Slider> {
       inactiveColor: data?.inactiveColor,
       label: data?.label,
       semanticFormatterCallback: data?.semanticFormatterCallback,
+      focusNode: data?.focusNode,
+      mouseCursor: data?.mouseCursor,
+      autofocus: data?.autofocus ?? false,
     );
   }
 
   @override
   CupertinoSlider createCupertinoWidget(BuildContext context) {
-    final data =
-        ios?.call(context) ?? cupertino?.call(context, platform(context));
+    final data = cupertino?.call(context, platform(context));
 
     return CupertinoSlider(
       key: data?.widgetKey ?? widgetKey,

@@ -102,6 +102,8 @@ Future<T> showPlatformDialog<T>({
   bool barrierDismissible,
   RouteSettings routeSettings,
   bool useRootNavigator = true,
+  bool materialUseSafeArea = true,
+  Color materialBarrierColor,
 }) {
   if (isMaterial(context)) {
     return showDialog<T>(
@@ -110,6 +112,9 @@ Future<T> showPlatformDialog<T>({
       barrierDismissible: barrierDismissible ?? androidBarrierDismissible,
       routeSettings: routeSettings,
       useRootNavigator: useRootNavigator,
+      useSafeArea: materialUseSafeArea,
+      //child: , deprecated
+      barrierColor: materialBarrierColor,
     );
   } else {
     return showCupertinoDialog<T>(
@@ -117,6 +122,7 @@ Future<T> showPlatformDialog<T>({
       builder: builder,
       routeSettings: routeSettings,
       useRootNavigator: useRootNavigator,
+      barrierDismissible: barrierDismissible ?? false,
     );
   }
 }
@@ -131,6 +137,7 @@ class MaterialModalSheetData {
   final Color barrierColor;
   final bool enableDrag;
   final bool isDismissible;
+  final RouteSettings routeSettings;
 
   MaterialModalSheetData({
     this.backgroundColor,
@@ -142,6 +149,7 @@ class MaterialModalSheetData {
     this.barrierColor,
     this.enableDrag = false,
     this.isDismissible = false,
+    this.routeSettings,
   })  : assert(isScrollControlled != null),
         assert(useRootNavigator != null),
         assert(enableDrag != null),
@@ -165,56 +173,31 @@ class CupertinoModalSheetData {
 Future<T> showPlatformModalSheet<T>({
   @required BuildContext context,
   @required WidgetBuilder builder,
-  @Deprecated('Use material = MaterialModalSheetData(backgroundColor)')
-      Color androidBackgroundColor,
-  @Deprecated('Use material = MaterialModalSheetData(elevation)')
-      double androidElevation,
-  @Deprecated('Use material = MaterialModalSheetData(shape)')
-      ShapeBorder androidShape,
-  @Deprecated('Use material = MaterialModalSheetData(isScrollControlled)')
-      bool androidIsScrollControlled = false,
-  @Deprecated('Use material = MaterialModalSheetData(useRootNavigator)')
-      bool androidUseRootNavigator = false,
-  @Deprecated('Use material = MaterialModalSheetData(clipBehavior)')
-      Clip androidClipBehavior,
-  @Deprecated('Use material = MaterialModalSheetData(barrierColor)')
-      Color androidBarrierColor,
-  @Deprecated('Use material = MaterialModalSheetData(enableDrag)')
-      bool androidEnableDrag = true,
-  @Deprecated('Use material = MaterialModalSheetData(isDismissible)')
-      bool androidIsDismissible = true,
   MaterialModalSheetData material,
-  @Deprecated('Use cupertino = CupertinoModalSheetData(imageFilter)')
-      ImageFilter iosImageFilter,
-  @Deprecated('Use cupertino = CupertinoModalSheetData(semanticsDismissible)')
-      bool iosSemanticsDismissible,
-  @Deprecated('Use cupertino = CupertinoModalSheetData(useRootNavigator)')
-      bool iosUseRootNavigator = true,
   CupertinoModalSheetData cupertino,
 }) {
   if (isMaterial(context)) {
     return showModalBottomSheet<T>(
       context: context,
       builder: builder,
-      backgroundColor: material?.backgroundColor ?? androidBackgroundColor,
-      elevation: material?.elevation ?? androidElevation,
-      shape: material?.shape ?? androidShape,
-      isScrollControlled:
-          material?.isScrollControlled ?? androidIsScrollControlled,
-      useRootNavigator: material?.useRootNavigator ?? androidUseRootNavigator,
-      clipBehavior: material?.clipBehavior ?? androidClipBehavior,
-      barrierColor: material?.barrierColor ?? androidBarrierColor,
-      enableDrag: material?.enableDrag ?? androidEnableDrag,
-      isDismissible: material?.isDismissible ?? androidIsDismissible,
+      backgroundColor: material?.backgroundColor,
+      elevation: material?.elevation,
+      shape: material?.shape,
+      isScrollControlled: material?.isScrollControlled ?? false,
+      useRootNavigator: material?.useRootNavigator ?? false,
+      clipBehavior: material?.clipBehavior,
+      barrierColor: material?.barrierColor,
+      enableDrag: material?.enableDrag ?? true,
+      isDismissible: material?.isDismissible ?? true,
+      routeSettings: material?.routeSettings,
     );
   } else {
     return showCupertinoModalPopup<T>(
       context: context,
       builder: builder,
-      filter: cupertino?.imageFilter ?? iosImageFilter,
-      semanticsDismissible:
-          cupertino?.semanticsDismissible ?? iosSemanticsDismissible,
-      useRootNavigator: cupertino?.useRootNavigator ?? iosUseRootNavigator,
+      filter: cupertino?.imageFilter,
+      semanticsDismissible: cupertino?.semanticsDismissible,
+      useRootNavigator: cupertino?.useRootNavigator ?? true,
     );
   }
 }

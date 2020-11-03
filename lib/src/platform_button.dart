@@ -14,6 +14,7 @@ import 'package:flutter/material.dart'
         MaterialTapTargetSize,
         RaisedButton,
         VisualDensity;
+import 'package:flutter/rendering.dart' show MouseCursor;
 import 'package:flutter/widgets.dart';
 
 import 'platform.dart';
@@ -68,6 +69,9 @@ class MaterialFlatButtonData extends _BaseData {
     this.autofocus,
     this.onLongPress,
     this.visualDensity,
+    this.mouseCursor,
+    this.height,
+    this.minWidth,
   }) : super(
           widgetKey: widgetKey,
           child: child,
@@ -100,6 +104,9 @@ class MaterialFlatButtonData extends _BaseData {
   final bool autofocus;
   final VoidCallback onLongPress;
   final VisualDensity visualDensity;
+  final MouseCursor mouseCursor;
+  final double height;
+  final double minWidth;
 }
 
 class MaterialRaisedButtonData extends _BaseData {
@@ -132,6 +139,7 @@ class MaterialRaisedButtonData extends _BaseData {
     this.autofocus,
     this.onLongPress,
     this.visualDensity,
+    this.mouseCursor,
   }) : super(
           widgetKey: widgetKey,
           child: child,
@@ -164,6 +172,7 @@ class MaterialRaisedButtonData extends _BaseData {
   final bool autofocus;
   final VoidCallback onLongPress;
   final VisualDensity visualDensity;
+  final MouseCursor mouseCursor;
 }
 
 class CupertinoButtonData extends _BaseData {
@@ -176,7 +185,6 @@ class CupertinoButtonData extends _BaseData {
     Color disabledColor,
     this.borderRadius,
     this.minSize,
-    this.margin,
     this.pressedOpacity,
   }) : super(
             widgetKey: widgetKey,
@@ -186,7 +194,6 @@ class CupertinoButtonData extends _BaseData {
             padding: padding,
             disabledColor: disabledColor);
 
-  final EdgeInsetsGeometry margin;
   final BorderRadius borderRadius;
   final double minSize;
   final double pressedOpacity;
@@ -222,13 +229,7 @@ class PlatformButton
   final Widget child;
   final Color color;
   final EdgeInsetsGeometry padding;
-  final EdgeInsetsGeometry margin;
   final Color disabledColor;
-
-  final PlatformBuilder<MaterialRaisedButtonData> android;
-  final PlatformBuilder<MaterialFlatButtonData> androidFlat;
-  final PlatformBuilder<CupertinoButtonData> ios;
-  final PlatformBuilder<CupertinoFilledButtonData> iosFilled;
 
   final PlatformBuilder2<MaterialRaisedButtonData> material;
   final PlatformBuilder2<MaterialFlatButtonData> materialFlat;
@@ -243,53 +244,16 @@ class PlatformButton
     this.color,
     this.disabledColor,
     this.padding,
-    this.margin,
-    @Deprecated('Use material argument. material: (context, platform) {}')
-        this.android,
-    @Deprecated('Use materialFlat argument. materialFlat: (context, platform) {}')
-        this.androidFlat,
-    @Deprecated('Use cupertino argument. cupertino: (context, platform) {}')
-        this.ios,
-    @Deprecated('Use cupertinoFilled argument. cupertinoFilled: (context, platform) {}')
-        this.iosFilled,
     this.material,
     this.materialFlat,
     this.cupertino,
     this.cupertinoFilled,
-  })  : assert(androidFlat == null || android == null),
-        super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    Widget button = super.build(context);
-
-    EdgeInsetsGeometry finalMargin;
-
-    if(isCupertino(context)){
-
-      if (iosFilled != null || cupertinoFilled != null) {
-        final filledData = iosFilled?.call(context) ??
-            cupertinoFilled(context, platform(context));
-      }
-      else{
-        final data =
-            ios?.call(context) ?? cupertino?.call(context, platform(context));
-
-        finalMargin = data?.margin;
-      }
-    }
-
-    return Padding(
-      padding: finalMargin ?? EdgeInsets.zero,
-      child: button,
-    );
-  }
+  }) : super(key: key);
 
   @override
   MaterialButton createMaterialWidget(BuildContext context) {
-    if (androidFlat != null || materialFlat != null) {
-      final dataFlat = androidFlat?.call(context) ??
-          materialFlat(context, platform(context));
+    if (materialFlat != null) {
+      final dataFlat = materialFlat(context, platform(context));
 
       return FlatButton(
         key: dataFlat?.widgetKey ?? widgetKey,
@@ -314,11 +278,13 @@ class PlatformButton
         autofocus: dataFlat?.autofocus ?? false,
         onLongPress: dataFlat?.onLongPress,
         visualDensity: dataFlat?.visualDensity,
+        mouseCursor: dataFlat?.mouseCursor,
+        height: dataFlat?.height,
+        minWidth: dataFlat?.minWidth,
       );
     }
 
-    final dataRaised =
-        android?.call(context) ?? material?.call(context, platform(context));
+    final dataRaised = material?.call(context, platform(context));
 
     return RaisedButton(
       key: dataRaised?.widgetKey ?? widgetKey,
@@ -349,14 +315,14 @@ class PlatformButton
       autofocus: dataRaised?.autofocus ?? false,
       onLongPress: dataRaised?.onLongPress,
       visualDensity: dataRaised?.visualDensity,
+      mouseCursor: dataRaised?.mouseCursor,
     );
   }
 
   @override
   CupertinoButton createCupertinoWidget(BuildContext context) {
-    if (iosFilled != null || cupertinoFilled != null) {
-      final filledData = iosFilled?.call(context) ??
-          cupertinoFilled(context, platform(context));
+    if (cupertinoFilled != null) {
+      final filledData = cupertinoFilled(context, platform(context));
 
       return CupertinoButton.filled(
         key: filledData?.widgetKey ?? widgetKey,
@@ -373,8 +339,7 @@ class PlatformButton
       );
     }
 
-    final data =
-        ios?.call(context) ?? cupertino?.call(context, platform(context));
+    final data = cupertino?.call(context, platform(context));
 
     return CupertinoButton(
       key: data?.widgetKey ?? widgetKey,

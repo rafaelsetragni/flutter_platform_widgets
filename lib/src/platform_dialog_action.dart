@@ -12,6 +12,7 @@ import 'package:flutter/material.dart'
         FlatButton,
         MaterialTapTargetSize,
         VisualDensity;
+import 'package:flutter/rendering.dart' show MouseCursor;
 import 'package:flutter/widgets.dart';
 
 import 'platform.dart';
@@ -49,6 +50,9 @@ class MaterialDialogActionData extends _BaseData {
     this.autofocus,
     this.visualDensity,
     this.onLongPress,
+    this.mouseCursor,
+    this.height,
+    this.minWidth,
   }) : super(
           widgetKey: widgetKey,
           child: child,
@@ -74,6 +78,9 @@ class MaterialDialogActionData extends _BaseData {
   final bool autofocus;
   final VisualDensity visualDensity;
   final VoidCallback onLongPress;
+  final MouseCursor mouseCursor;
+  final double height;
+  final double minWidth;
 }
 
 class CupertinoDialogActionData extends _BaseData {
@@ -101,11 +108,6 @@ class PlatformDialogAction
   final Widget child;
   final VoidCallback onPressed;
 
-  @Deprecated('Use material argument. material: (context, platform) {}')
-  final PlatformBuilder<MaterialDialogActionData> android;
-  @Deprecated('Use cupertino argument. cupertino: (context, platform) {}')
-  final PlatformBuilder<CupertinoDialogActionData> ios;
-
   final PlatformBuilder2<MaterialDialogActionData> material;
   final PlatformBuilder2<CupertinoDialogActionData> cupertino;
 
@@ -114,15 +116,12 @@ class PlatformDialogAction
     this.widgetKey,
     @required this.child,
     @required this.onPressed,
-    this.android,
-    this.ios,
     this.material,
     this.cupertino,
   }) : super(key: key);
   @override
   FlatButton createMaterialWidget(BuildContext context) {
-    final data =
-        android?.call(context) ?? material?.call(context, platform(context));
+    final data = material?.call(context, platform(context));
 
     return FlatButton(
       key: data?.widgetKey ?? widgetKey,
@@ -147,13 +146,15 @@ class PlatformDialogAction
       autofocus: data?.autofocus ?? false,
       visualDensity: data?.visualDensity,
       onLongPress: data?.onLongPress,
+      mouseCursor: data?.mouseCursor,
+      height: data?.height,
+      minWidth: data?.minWidth,
     );
   }
 
   @override
   CupertinoDialogAction createCupertinoWidget(BuildContext context) {
-    final data =
-        ios?.call(context) ?? cupertino?.call(context, platform(context));
+    final data = cupertino?.call(context, platform(context));
 
     return CupertinoDialogAction(
       key: data?.widgetKey ?? widgetKey,
