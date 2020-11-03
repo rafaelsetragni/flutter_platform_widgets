@@ -37,6 +37,8 @@ const BorderSide _kDefaultRoundedBorderSide = BorderSide(
   width: 0.0,
 );
 
+typedef PlatformValidator = String Function(String value);
+
 const Border _kDefaultRoundedBorder = Border(
   top: _kDefaultRoundedBorderSide,
   bottom: _kDefaultRoundedBorderSide,
@@ -328,6 +330,8 @@ class PlatformTextField
   final String obscuringCharacter;
   final Iterable<String> autofillHints;
 
+  final String errorText;
+
   final double cursorHeight;
   final String restorationId;
 
@@ -336,6 +340,7 @@ class PlatformTextField
     this.widgetKey,
     this.controller,
     this.focusNode,
+    this.errorText,
     TextInputType keyboardType,
     this.textInputAction,
     this.textCapitalization = TextCapitalization.none,
@@ -383,9 +388,15 @@ class PlatformTextField
             (maxLines == 1 ? TextInputType.text : TextInputType.multiline),
         super(key: key);
 
+  bool _hasError(){
+    return errorText?.isNotEmpty ?? false;
+  }
+
   @override
   TextField createMaterialWidget(BuildContext context) {
     final data = material?.call(context, platform(context));
+
+    ThemeData themeData = Theme.of(context);
 
     return TextField(
       key: data?.widgetKey ?? widgetKey,

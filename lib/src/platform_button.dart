@@ -183,6 +183,7 @@ class CupertinoButtonData extends _BaseData {
     VoidCallback onPressed,
     EdgeInsetsGeometry padding,
     Color disabledColor,
+    this.margin,
     this.borderRadius,
     this.minSize,
     this.pressedOpacity,
@@ -194,6 +195,7 @@ class CupertinoButtonData extends _BaseData {
             padding: padding,
             disabledColor: disabledColor);
 
+  final EdgeInsetsGeometry margin;
   final BorderRadius borderRadius;
   final double minSize;
   final double pressedOpacity;
